@@ -35,10 +35,10 @@ func (p *Philosopher) think() {
 
 func (p *Philosopher) dine(wg *sync.WaitGroup) {
 	defer wg.Done()
-
+	// философы едят 3 раза
 	for i := 0; i < 3; i++ {
 		p.think()
-
+		// ищем вилки
 		if p.id%2 == 0 {
 			<-p.leftFork
 			<-p.rightFork
@@ -48,7 +48,7 @@ func (p *Philosopher) dine(wg *sync.WaitGroup) {
 		}
 
 		p.eat()
-
+		// КАК покушали кладем вилки
 		if p.id%2 == 0 {
 			p.leftFork <- struct{}{}
 			p.rightFork <- struct{}{}
@@ -63,20 +63,20 @@ func main() {
 	wg := sync.WaitGroup{}
 
 	forks := make([]chan struct{}, n)
-
+	// создаем вилки и кладем на стол(делаем вободными)
 	for i := 0; i < n; i++ {
 		forks[i] = make(chan struct{}, 1)
 		forks[i] <- struct{}{}
 	}
 
 	philosophers := make([]*Philosopher, n)
-
+	// создаем философов и определяем им вилки
 	for i := 0; i < n; i++ {
 		leftFork := forks[i]
 		rightFork := forks[(i+1)%n]
 		philosophers[i] = NewPhilosopher(i, leftFork, rightFork)
 	}
-
+	// Отправляем думать или кушать
 	for i := 0; i < n; i++ {
 		wg.Add(1)
 		go philosophers[i].dine(&wg)
